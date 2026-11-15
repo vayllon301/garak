@@ -523,7 +523,7 @@ class Probe(Configurable):
         # per-prompt intents must be pruned alongside the prompts they describe,
         # otherwise pruning silently shifts each surviving prompt's intent
         prompt_intents = getattr(self, "_prompt_intents", None)
-        if isinstance(prompt_intents, tuple):
+        if prompt_intents is not None:
             prompt_intents = list(prompt_intents)
             self._prompt_intents = prompt_intents
         for id in ids_to_rm:
