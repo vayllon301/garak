@@ -11,6 +11,7 @@ import logging
 import os
 import ssl
 from typing import List, Union
+from urllib.parse import urlparse
 import requests
 
 import backoff
@@ -113,6 +114,15 @@ class RestGenerator(Generator):
                 raise ValueError(
                     "RestGenerator response_json is True but response_json_field is an empty string. If the root object is the target object, use a JSONPath."
                 )
+
+        # --target_name arrives as the "name" option; when no uri was set and
+        # the name is an HTTP(S) URL, use it as the endpoint
+        if (
+            self.uri is None
+            and isinstance(self.name, str)
+            and urlparse(self.name).scheme in ("http", "https")
+        ):
+            self.uri = self.name
 
         if self.name is None:
             self.name = self.uri

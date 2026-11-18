@@ -35,6 +35,30 @@ def test_rest_generator_initialization():
     assert generator.uri == DEFAULT_URI
 
 
+@pytest.mark.parametrize("module_level", [False, True])
+def test_rest_target_name_sets_uri(module_level):
+    """--target_name reaches the generator as the "name" option and should set the uri"""
+    opts = {"name": DEFAULT_URI}
+    rest_conf = opts if module_level else {"RestGenerator": opts}
+    generator = RestGenerator(config_root={"generators": {"rest": rest_conf}})
+    assert generator.uri == DEFAULT_URI, "an HTTP(S) name should be used as the uri"
+    assert generator.name == DEFAULT_URI
+
+
+def test_rest_configured_uri_wins_over_target_name():
+    """An explicitly configured uri is kept when the name is also a URL"""
+    conf = {"RestGenerator": {"uri": DEFAULT_URI, "name": "https://example.com/chat"}}
+    generator = RestGenerator(config_root={"generators": {"rest": conf}})
+    assert generator.uri == DEFAULT_URI, "a configured uri should take precedence"
+
+
+def test_rest_non_url_name_still_requires_uri():
+    """A name that is not an HTTP(S) URL is not used as the endpoint"""
+    conf = {"RestGenerator": {"name": DEFAULT_NAME}}
+    with pytest.raises(ValueError, match="No REST endpoint URI"):
+        RestGenerator(config_root={"generators": {"rest": conf}})
+
+
 # plain text test
 @pytest.mark.usefixtures("set_rest_config")
 def test_plaintext_rest(requests_mock):
